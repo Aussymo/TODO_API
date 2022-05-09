@@ -8,21 +8,52 @@ import { useState, useEffect } from "react";
 
 export function Home() {
 	const [todos, setTodos] = useState([
-		"Sweep Lot",
-		"Clean Vacuums",
-		"Clean Bathrooms",
-		"Clean Cameras",
-		"Clean Arches",
+		{ label: "Sweep Lot", done: false },
+		{ label: "Make the bed", done: false },
+		{ label: "Walk the dog", done: false },
+		{ label: "Do the replits", done: false },
+	]);
+	const [data, setData] = useState([
+		{ label: "Make the bed", done: false },
+		{ label: "Walk the dog", done: false },
+		{ label: "Do the replits", done: false },
 	]);
 	// hoverstate from upmostly website, ?: is another way to put if else
 	const [isShown, setisShown] = useState(false);
+
+	const apiURL = "https://assets.breatheco.de/apis/fake/todos/user/austin";
+
+	const fetchTodos = () => {
+		fetch(apiURL)
+			.then((response) => response.json())
+			.then((data) => setTodos(data))
+			.catch((error) => console.error("This is an error:", error));
+		console.log(todos);
+	};
+
+	const addTodo = () => {
+		const brandNewTodos = [...todos, { label: data, done: false }];
+		setTodos(brandNewTodos);
+		return fetch(apiURL, {
+			method: "PUT",
+			body: JSON.stringify(brandNewTodos),
+			headers: {
+				"Content-Type": "application/json",
+			},
+		}).then((resp) => resp.json());
+		// .then((resp) => JSON.stringify(resp))
+	};
+	useEffect(() => {
+		fetchTodos();
+	}, []);
+
 	const todo = todos.map((item, i) => {
 		return (
 			<div className="content" key={i}>
 				<li
 					onMouseEnter={() => setisShown({ state: true, index: i })}
 					onMouseLeave={() => setisShown({ state: false, index: 0 })}>
-					{item}{" "}
+					{item.label}{" "}
 					{isShown.state === true && isShown.index === i ? (
 						<button onClick={() => removeItem(i)}>
 							<strong>X</strong>
@@ -39,23 +70,33 @@ export function Home() {
 		setTodos(newArray);
 	};
 	// on key down event is when user pushes button down. #13 is enter key
-	const newTodos = (onKeyDownEvent) => {
-		if (onKeyDownEvent.keyCode === 13) {
-			let userInput = onKeyDownEvent.target.value;
-			const newTodos = [...todos, userInput];
-			setTodos(newTodos);
-			onKeyDownEvent.target.value = "";
+	const newTodos = (event) => {
+		{
+			// if (onKeyDownEvent.keyCode === 13) {
+			setData(event.target.value);
+			// const brandNewTodos = [...todos, { label: userInput, done: false }];
+			// setTodos(brandNewTodos);
+			// onKeyDownEvent.target.value = "";
 		}
 	};
 	return (
 		<div className="container">
 			<h1>5 A Day!</h1>
-			<input
-				onKeyDown={newTodos}
-				type="text"
-				id="fname"
-				placeholder="Add a task"
-				name="fname"></input>
+			<div className="input-group">
+				<input
+					onChange={newTodos}
+					type="text"
+					className="form-control"
+					placeholder="Add a task"
+				/>
+				<button
+					id="addbtn"
+					type="submit"
+					className="btn btn-success"
+					onClick={addTodo}>
+					add
+				</button>
+			</div>
 			<div>
 				<ul>{todo}</ul>
 				<div>
